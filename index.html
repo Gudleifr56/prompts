@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Моя коллекция промптов</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#1a1d27; --card2:#20242f; --border:#2b303d;
+    --text:#e7e9ee; --muted:#9aa0ad; --accent:#7c5cff; --accent2:#5b8def;
+    --green:#3ecf8e; --danger:#ff5c72;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%,#1c2030 0,var(--bg) 55%);
+    color:var(--text); min-height:100vh; padding:32px 16px 80px;
+  }
+  .wrap{max-width:1000px; margin:0 auto}
+  header{display:flex; align-items:center; gap:14px; margin-bottom:6px}
+  header h1{font-size:26px; margin:0; letter-spacing:-.5px}
+  .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:22px}
+  .sub{color:var(--muted); margin:2px 0 24px; font-size:14px}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px}
+  input,textarea,select{
+    background:var(--card2); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:11px 13px; font-size:14px; font-family:inherit; outline:none; transition:.15s;
+  }
+  input:focus,textarea:focus{border-color:var(--accent)}
+  .search{flex:1; min-width:200px}
+  button{
+    cursor:pointer; border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:600;
+    font-family:inherit; transition:.15s; color:#fff;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-ghost{background:var(--card2); border:1px solid var(--border); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent)}
+  .tags-bar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px}
+  .chip{
+    background:var(--card2); border:1px solid var(--border); color:var(--muted);
+    padding:6px 13px; border-radius:20px; font-size:13px; cursor:pointer; transition:.15s;
+  }
+  .chip:hover{color:var(--text)}
+  .chip.active{background:var(--accent); border-color:var(--accent); color:#fff}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px;
+    display:flex; flex-direction:column; gap:10px; position:relative; transition:.15s;
+  }
+  .card:hover{border-color:#3a4152; transform:translateY(-2px)}
+  .card h3{margin:0; font-size:16px; padding-right:50px}
+  .card .body{color:var(--muted); font-size:13.5px; white-space:pre-wrap; line-height:1.5; max-height:150px; overflow:auto}
+  .card-tags{display:flex; gap:6px; flex-wrap:wrap}
+  .mini-tag{background:rgba(124,92,255,.15); color:#b7a6ff; font-size:11px; padding:3px 9px; border-radius:12px}
+  .card-links{display:flex; flex-direction:column; gap:4px}
+  .card-links a{color:var(--accent2); font-size:13px; text-decoration:none; word-break:break-all}
+  .card-links a:hover{text-decoration:underline}
+  .card-actions{display:flex; gap:8px; margin-top:4px}
+  .card-actions button{padding:7px 12px; font-size:12.5px; flex:1}
+  .icon-btns{position:absolute; top:14px; right:14px; display:flex; gap:6px}
+  .icon-btns button{padding:5px 8px; font-size:12px; background:var(--card2); border:1px solid var(--border); color:var(--muted)}
+  .icon-btns button:hover{color:var(--text); border-color:var(--accent)}
+  .empty{text-align:center; color:var(--muted); padding:60px 20px; font-size:15px}
+  /* modal */
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; width:100%; max-width:520px; max-height:90vh; overflow:auto}
+  .modal h2{margin:0 0 18px; font-size:19px}
+  .field{margin-bottom:14px; display:flex; flex-direction:column; gap:6px}
+  .field label{font-size:13px; color:var(--muted)}
+  .field input,.field textarea{width:100%}
+  .field textarea{resize:vertical; min-height:100px}
+  .link-row{display:flex; gap:8px; margin-bottom:8px}
+  .link-row input{flex:1}
+  .link-row button{padding:8px 12px; background:var(--card2); border:1px solid var(--border); color:var(--danger)}
+  .modal-actions{display:flex; gap:10px; margin-top:8px}
+  .modal-actions button{flex:1}
+  .hint{font-size:11.5px; color:var(--muted)}
+  .footer-note{text-align:center; color:var(--muted); font-size:12px; margin-top:40px}
+  .status{font-size:13px; margin:-14px 0 22px; padding:9px 13px; border-radius:10px; display:none}
+  .status.on{display:block; background:rgba(62,207,142,.12); color:var(--green); border:1px solid rgba(62,207,142,.3)}
+  .status.off{display:block; background:rgba(255,92,114,.1); color:#ffb3bd; border:1px solid rgba(255,92,114,.25)}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--green); color:#04240f; padding:11px 20px; border-radius:12px; font-weight:600; font-size:14px; opacity:0; transition:.25s; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">✨</div>
+    <h1>Моя коллекция промптов</h1>
+  </header>
+  <p class="sub">Общая коллекция промптов. Добавил — появилось у всех.</p>
+  <div id="status" class="status"></div>
+
+  <div class="toolbar">
+    <input class="search" id="search" placeholder="🔍 Поиск по названию, тексту или тегу...">
+    <button class="btn-primary" onclick="openModal()">+ Добавить промпт</button>
+    <button class="btn-ghost" onclick="shareSite()">🔗 Поделиться сайтом</button>
+    <button class="btn-ghost" onclick="exportData()">⬇ Экспорт</button>
+    <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆ Импорт</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+
+  <div class="tags-bar" id="tagsBar"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">Пока пусто. Нажми «+ Добавить промпт», чтобы начать 🚀</div>
+
+  <p class="footer-note">Совет: используй «Экспорт», чтобы сделать резервную копию промптов в файл.</p>
+</div>
+
+<!-- Модалка -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Новый промпт</h2>
+    <div class="field">
+      <label>Название</label>
+      <input id="fTitle" placeholder="Например: Идеи для постов">
+    </div>
+    <div class="field">
+      <label>Текст промпта</label>
+      <textarea id="fBody" placeholder="Вставь сюда текст промпта..."></textarea>
+    </div>
+    <div class="field">
+      <label>Теги <span class="hint">(через запятую)</span></label>
+      <input id="fTags" placeholder="маркетинг, идеи, gpt">
+    </div>
+    <div class="field">
+      <label>Ссылки</label>
+      <div id="linksContainer"></div>
+      <button class="btn-ghost" style="font-size:13px" onclick="addLinkRow()">+ Добавить ссылку</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn-primary" onclick="savePrompt()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Скопировано!</div>
+
+<!-- Firebase (бесплатно) для общей синхронизации -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+/* ============================================================
+   НАСТРОЙКА ОБЩЕЙ БАЗЫ (заполни один раз — инструкция ниже).
+   Вставь сюда конфиг из своего проекта Firebase.
+   Пока поля пустые — сайт работает только локально в этом браузере.
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC554hZGBcTc3eNon5V74HPYOKrPWXVVPg",
+  authDomain: "prompts-ec444.firebaseapp.com",
+  databaseURL: "https://prompts-ec444-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "prompts-ec444"
+};
+/* ============================================================ */
+
+const KEY='my_prompts_v1';
+// Сюда при «Поделиться сайтом» вшиваются все промпты:
+const EMBEDDED=/*__DATA__*/[]/*__END__*/;
+let prompts=load();
+let dbRef=null, online=false;
+
+function initFirebase(){
+  const el=document.getElementById('status');
+  if(!FIREBASE_CONFIG.databaseURL){
+    el.className='status off';
+    el.textContent='⚠ Общая база не подключена — промпты сохраняются только в этом браузере. Как включить синхронизацию: смотри инструкцию (комментарий FIREBASE_CONFIG в файле).';
+    if(prompts.length===0 && EMBEDDED.length){prompts=EMBEDDED; save();}
+    render();
+    return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    dbRef=firebase.database().ref('prompts');
+    online=true;
+    el.className='status on';
+    el.textContent='🟢 Общая база подключена — изменения видны у всех в реальном времени.';
+    dbRef.on('value', snap=>{
+      const v=snap.val();
+      prompts = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+      localStorage.setItem(KEY,JSON.stringify(prompts));
+      render();
+    }, err=>{
+      el.className='status off';
+      el.textContent='⚠ Нет доступа к базе: '+err.message+'. Проверь databaseURL и правила базы.';
+    });
+  }catch(e){
+    el.className='status off';
+    el.textContent='⚠ Ошибка подключения к Firebase: '+e.message;
+    render();
+  }
+}
+let editId=null;
+let activeTag=null;
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(prompts));
+  if(online && dbRef){dbRef.set(prompts).catch(e=>toast('Ошибка записи в базу'))}
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+function openModal(id){
+  editId=id||null;
+  document.getElementById('modalTitle').textContent=id?'Редактировать промпт':'Новый промпт';
+  const p=id?prompts.find(x=>x.id===id):null;
+  document.getElementById('fTitle').value=p?p.title:'';
+  document.getElementById('fBody').value=p?p.body:'';
+  document.getElementById('fTags').value=p?p.tags.join(', '):'';
+  const c=document.getElementById('linksContainer'); c.innerHTML='';
+  if(p&&p.links.length){p.links.forEach(l=>addLinkRow(l.label,l.url))}else{addLinkRow()}
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('show')}
+
+function addLinkRow(label='',url=''){
+  const row=document.createElement('div');
+  row.className='link-row';
+  row.innerHTML=`<input placeholder="Название" value="${esc(label)}">
+    <input placeholder="https://..." value="${esc(url)}">
+    <button onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('linksContainer').appendChild(row);
+}
+
+function savePrompt(){
+  const title=document.getElementById('fTitle').value.trim();
+  const body=document.getElementById('fBody').value.trim();
+  if(!title&&!body){toast('Заполни название или текст');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const links=[...document.querySelectorAll('#linksContainer .link-row')].map(r=>{
+    const i=r.querySelectorAll('input');
+    return {label:i[0].value.trim(), url:i[1].value.trim()};
+  }).filter(l=>l.url);
+  if(editId){
+    const p=prompts.find(x=>x.id===editId);
+    Object.assign(p,{title,body,tags,links});
+  }else{
+    prompts.unshift({id:uid(),title,body,tags,links});
+  }
+  save(); closeModal(); render();
+}
+
+function del(id){
+  if(!confirm('Удалить этот промпт?'))return;
+  prompts=prompts.filter(p=>p.id!==id); save(); render();
+}
+
+function copyPrompt(id){
+  const p=prompts.find(x=>x.id===id);
+  navigator.clipboard.writeText(p.body).then(()=>toast('Скопировано!'));
+}
+
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function allTags(){
+  const set=new Set(); prompts.forEach(p=>p.tags.forEach(t=>set.add(t)));
+  return [...set].sort();
+}
+
+function render(){
+  const q=document.getElementById('search').value.toLowerCase();
+  // tags bar
+  const tb=document.getElementById('tagsBar'); tb.innerHTML='';
+  const tags=allTags();
+  if(tags.length){
+    const all=document.createElement('span');
+    all.className='chip'+(activeTag===null?' active':'');
+    all.textContent='Все'; all.onclick=()=>{activeTag=null;render()};
+    tb.appendChild(all);
+    tags.forEach(t=>{
+      const c=document.createElement('span');
+      c.className='chip'+(activeTag===t?' active':'');
+      c.textContent='#'+t; c.onclick=()=>{activeTag=(activeTag===t?null:t);render()};
+      tb.appendChild(c);
+    });
+  }
+  // filter
+  let list=prompts.filter(p=>{
+    const matchTag=!activeTag||p.tags.includes(activeTag);
+    const matchQ=!q||p.title.toLowerCase().includes(q)||p.body.toLowerCase().includes(q)||p.tags.join(' ').toLowerCase().includes(q);
+    return matchTag&&matchQ;
+  });
+  const grid=document.getElementById('grid');
+  document.getElementById('empty').style.display=list.length?'none':(prompts.length?'none':'block');
+  if(!list.length&&prompts.length){grid.innerHTML='<div class="empty">Ничего не найдено 🤷</div>';return}
+  grid.innerHTML=list.map(p=>`
+    <div class="card">
+      <div class="icon-btns">
+        <button onclick="openModal('${p.id}')" title="Редактировать">✎</button>
+        <button onclick="del('${p.id}')" title="Удалить">🗑</button>
+      </div>
+      <h3>${esc(p.title)||'Без названия'}</h3>
+      ${p.body?`<div class="body">${esc(p.body)}</div>`:''}
+      ${p.tags.length?`<div class="card-tags">${p.tags.map(t=>`<span class="mini-tag">#${esc(t)}</span>`).join('')}</div>`:''}
+      ${p.links.length?`<div class="card-links">${p.links.map(l=>`<a href="${esc(l.url)}" target="_blank">🔗 ${esc(l.label)||l.url}</a>`).join('')}</div>`:''}
+      <div class="card-actions">
+        <button class="btn-primary" onclick="copyPrompt('${p.id}')">📋 Копировать</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500);
+}
+
+function shareSite(){
+  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  const json=JSON.stringify(prompts);
+  html=html.replace(/\/\*__DATA__\*\/[\s\S]*?\/\*__END__\*\//,'/*__DATA__*/'+json+'/*__END__*/');
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='prompts-site.html'; a.click();
+  toast('Файл готов — отправляй кому угодно!');
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(prompts,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='prompts-backup.json'; a.click();
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const data=JSON.parse(r.result);
+    if(Array.isArray(data)){prompts=data;save();render();toast('Импортировано!')}
+  }catch(err){toast('Ошибка файла')}};
+  r.readAsText(file); e.target.value='';
+}
+
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeModal()});
+
+// запуск: подключаем общую базу (или локальный режим, если конфиг пустой)
+initFirebase();
+</script>
+</body>
+</html>
