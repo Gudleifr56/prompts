@@ -259,7 +259,7 @@ function copyPrompt(id){
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 function allTags(){
-  const set=new Set(); prompts.forEach(p=>p.tags.forEach(t=>set.add(t)));
+  const set=new Set(); prompts.forEach(p=>(Array.isArray(p.tags)?p.tags:[]).forEach(t=>set.add(t)));
   return [...set].sort();
 }
 
@@ -282,14 +282,19 @@ function render(){
   }
   // filter
   let list=prompts.filter(p=>{
-    const matchTag=!activeTag||p.tags.includes(activeTag);
-    const matchQ=!q||p.title.toLowerCase().includes(q)||p.body.toLowerCase().includes(q)||p.tags.join(' ').toLowerCase().includes(q);
+    const tags=Array.isArray(p.tags)?p.tags:[];
+    const title=p.title||'', body=p.body||'';
+    const matchTag=!activeTag||tags.includes(activeTag);
+    const matchQ=!q||title.toLowerCase().includes(q)||body.toLowerCase().includes(q)||tags.join(' ').toLowerCase().includes(q);
     return matchTag&&matchQ;
   });
   const grid=document.getElementById('grid');
   document.getElementById('empty').style.display=list.length?'none':(prompts.length?'none':'block');
   if(!list.length&&prompts.length){grid.innerHTML='<div class="empty">Ничего не найдено 🤷</div>';return}
-  grid.innerHTML=list.map(p=>`
+  grid.innerHTML=list.map(p=>{
+    const tags=Array.isArray(p.tags)?p.tags:[];
+    const links=Array.isArray(p.links)?p.links:[];
+    return `
     <div class="card">
       <div class="icon-btns">
         <button onclick="openModal('${p.id}')" title="Редактировать">✎</button>
@@ -297,13 +302,13 @@ function render(){
       </div>
       <h3>${esc(p.title)||'Без названия'}</h3>
       ${p.body?`<div class="body">${esc(p.body)}</div>`:''}
-      ${p.tags.length?`<div class="card-tags">${p.tags.map(t=>`<span class="mini-tag">#${esc(t)}</span>`).join('')}</div>`:''}
-      ${p.links.length?`<div class="card-links">${p.links.map(l=>`<a href="${esc(l.url)}" target="_blank">🔗 ${esc(l.label)||l.url}</a>`).join('')}</div>`:''}
+      ${tags.length?`<div class="card-tags">${tags.map(t=>`<span class="mini-tag">#${esc(t)}</span>`).join('')}</div>`:''}
+      ${links.length?`<div class="card-links">${links.map(l=>`<a href="${esc(l.url)}" target="_blank">🔗 ${esc(l.label)||l.url}</a>`).join('')}</div>`:''}
       <div class="card-actions">
         <button class="btn-primary" onclick="copyPrompt('${p.id}')">📋 Копировать</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function toast(msg){
